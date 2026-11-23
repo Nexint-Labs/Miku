@@ -319,11 +319,6 @@ module.exports = {
 				}
 
 				if (result.error) {
-					await postAPI("/currency/update/balance", {
-						userId: guildMember.id,
-						name: getUsername(guildMember),
-						amount: transfer
-					})
 					await replyContainer(
 						interaction,
 						"API Error",
