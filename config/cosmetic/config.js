@@ -1,4 +1,4 @@
 module.exports = {
-    pluginName: "Prism Bot", // Plugin Name lol
+    pluginName: "Miku", // Plugin Name lol
     pluginVer: "0.7.0-dev"
 }
