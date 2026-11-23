@@ -506,27 +506,6 @@ module.exports = {
 					}
 					return;
 				} catch (error) {
-					if (!transferred) {
-						const result = await postAPI("/currency/update/balance", {
-							userId: guildMember.id,
-							name: getUsername(guildMember),
-							amount: transfer
-						})
-
-						if (result.error) {
-							await replyContainer(
-								interaction,
-								"API Error",
-								["Could not cancel the bet."],
-								"warn",
-								warning,
-								{
-									advert: false
-								}
-							)
-							return null;
-						}
-					}
 
 					await handleInteractionError(interaction, response, error);
 					return;
