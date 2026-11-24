@@ -7,29 +7,31 @@ const { replyContainer } = require('#functions/discord/container/replyContainer'
 const { warning } = require('#config/discord/visual/botAssets');
 const { createContainer } = require('#functions/discord/container/container');
 const { handleInteractionError } = require('#functions/discord/helpers/handleInteractionError');
-const { pluralValues } = require('#functions/discord/core/pluralValues');
+const { pluralValues, prefix } = require('#functions/discord/core/pluralValues');
 const { checkBlacklist } = require('#functions/discord/auth/checkBlacklist');
 const { optOutChkSingle } = require('#functions/discord/opt-out/optOut');
 const { postAPI, queryAPI } = require('#functions/discord/api/fetch');
 const { getUsername } = require('#functions/discord/core/getUsername');
+const { pluginName } = require('#config/cosmetic/config');
+const { log } = require('#functions/core/log.mjs');
 
 module.exports = {
 	cooldown: 5,
 	data: new SlashCommandBuilder()
 		.setName('blackjack')
-		.setDescription('Play blackjack. WIP.')
+		.setDescription(`Play blackjack against ${pluginName}.`)
 		.addIntegerOption(option =>
 			option
-				.setName('coins')
-				.setDescription('The coin amount to bet.'))
+				.setName(`${prefix(0, false, false)}`)
+				.setDescription(`The ${prefix(1)} amount to bet.`))
 		.addIntegerOption(option =>
 			option
 				.setName('zeros')
-				.setDescription('The amount of zeroes behind.'))
+				.setDescription('The amount of zeroes behind. (Sci-Notation)'))
 		.addStringOption(option =>
 			option
 				.setName('all')
-				.setDescription('Bet all coins?')
+				.setDescription(`Bet all of your ${prefix(0)}?`)
 				.addChoices(
 					{ name: 'True', value: 'true' },
 				)),
@@ -64,9 +66,9 @@ module.exports = {
 		// balance check
 		let transfer;
 		if (interaction.options.getInteger("zeros") === null) {
-			transfer = interaction.options.getInteger("coins");
+			transfer = interaction.options.getInteger(prefix(0, false, false));
 		} else {
-			transfer = interaction.options.getInteger("coins") * Math.pow(10, interaction.options.getInteger("zeros"));
+			transfer = interaction.options.getInteger(prefix(0, false, false)) * Math.pow(10, interaction.options.getInteger("zeros"));
 		}
 		if (interaction.options.getString("all") === "true") {
 			const result = await queryAPI("/currency/update/balance", {
@@ -78,7 +80,7 @@ module.exports = {
 				await replyContainer(
 					interaction,
 					"API Error",
-					["Could not find your money."],
+					[`Could not find your ${prefix(1)}.`],
 					"warn",
 					warning,
 					{
@@ -97,7 +99,7 @@ module.exports = {
 			await replyContainer(
 				interaction,
 				"Blackjack",
-				["Please input a valid amount of money."],
+				[`Please input a valid amount of ${prefix(1)}.`],
 				"warn",
 				warning,
 				{
@@ -112,7 +114,7 @@ module.exports = {
 			await replyContainer(
 				interaction,
 				"Blackjack",
-				["Please input a positive amount of money."],
+				[`Please input a positive amount of ${prefix(1)}.`],
 				"warn",
 				warning,
 				{
@@ -134,7 +136,7 @@ module.exports = {
 				await replyContainer(
 					interaction,
 					"Blackjack",
-					["You have insufficient funds to perform this action."],
+					[`You have insufficient ${prefix(1)} to perform this action.`],
 					"warn",
 					warning,
 					{
@@ -146,7 +148,7 @@ module.exports = {
 			await replyContainer(
 				interaction,
 				"API Error",
-				["Could not wager money."],
+				[`Could not wager ${prefix(1)}.`],
 				"warn",
 				warning,
 				{
@@ -342,31 +344,31 @@ module.exports = {
 
 				// lose text
 				if (shortened) {
-					msg = `You have lost ${(abbrevBalance(transfer)).displayValue} coin${pluralValues(transfer)}.\n\nDealer: ${dealercards} (${dealer.cardTotal})\nPlayer: ${playercards} (${player.cardTotal})\n\nNew balance: ${newCoinAmt.displayValue}`;
+					msg = `You have lost ${(abbrevBalance(transfer)).displayValue} ${prefix(transfer)}.\n\nDealer: ${dealercards} (${dealer.cardTotal})\nPlayer: ${playercards} (${player.cardTotal})\n\nNew balance: ${newCoinAmt.displayValue} ${prefix(newCoinAmt.value)}`;
 				} else {
-					msg = `You have lost ${transfer} coin${pluralValues(transfer)}.\n\nDealer: ${dealercards} (${dealer.cardTotal})\nPlayer: ${playercards} (${player.cardTotal})\n\nNew bank balance: ${newCoinAmt.value}`;
+					msg = `You have lost ${transfer} ${prefix(transfer)}.\n\nDealer: ${dealercards} (${dealer.cardTotal})\nPlayer: ${playercards} (${player.cardTotal})\n\nNew balance: ${newCoinAmt.value} ${prefix(newCoinAmt.value)}`;
 				}
 			} else if (lost === false) {
 
 				// win text
 				if (shortened) {
-					msg = `You have won ${(abbrevBalance(transfer)).displayValue} coin${pluralValues(transfer)}.\n\nDealer: ${dealercards} (${dealer.cardTotal})\nPlayer: ${playercards} (${player.cardTotal})\n\nNew balance: ${newCoinAmt.displayValue}`;
+					msg = `You have won ${(abbrevBalance(transfer)).displayValue} ${prefix(transfer)}.\n\nDealer: ${dealercards} (${dealer.cardTotal})\nPlayer: ${playercards} (${player.cardTotal})\n\nNew balance: ${newCoinAmt.displayValue} ${prefix(newCoinAmt.value)}`;
 				} else {
-					msg = `You have won ${transfer} coin${pluralValues(transfer)}.\n\nDealer: ${dealercards} (${dealer.cardTotal})\nPlayer: ${playercards} (${player.cardTotal})\n\nNew bank balance: ${newCoinAmt.value}`;
+					msg = `You have won ${transfer} ${prefix(transfer)}.\n\nDealer: ${dealercards} (${dealer.cardTotal})\nPlayer: ${playercards} (${player.cardTotal})\n\nNew balance: ${newCoinAmt.value} ${prefix(newCoinAmt.value)}`;
 				}
 			} else if (lost === "tie") {
 
 				// tied text
 				if (shortened) {
-					msg = `You have tied against the bot, and have not gained or lost anything.\n\nDealer: ${dealercards} (${dealer.cardTotal})\nPlayer: ${playercards} (${player.cardTotal})\n\nNew balance: ${newCoinAmt.displayValue}`;
+					msg = `You have tied against the bot, and have not gained or lost anything.\n\nDealer: ${dealercards} (${dealer.cardTotal})\nPlayer: ${playercards} (${player.cardTotal})\n\nNew balance: ${newCoinAmt.displayValue} ${prefix(newCoinAmt.value)}`;
 				} else {
-					msg = `You have tied against the bot, and have not gained or lost anything.\n\nDealer: ${dealercards} (${dealer.cardTotal})\nPlayer: ${playercards} (${player.cardTotal})\n\nNew balance: ${newCoinAmt.value}`;
+					msg = `You have tied against the bot, and have not gained or lost anything.\n\nDealer: ${dealercards} (${dealer.cardTotal})\nPlayer: ${playercards} (${player.cardTotal})\n\nNew balance: ${newCoinAmt.value} ${prefix(newCoinAmt.value)}`;
 				}
 			} else {
 				if (shortened) {
-					msg = `You have bet ${(abbrevBalance(transfer)).displayValue} coin${pluralValues(transfer)}.\n\nDealer: ${dealer.cards[0]}, ???\nPlayer: ${playercards} (${player.cardTotal})`;
+					msg = `You have bet ${(abbrevBalance(transfer)).displayValue} ${prefix(transfer)}.\n\nDealer: ${dealer.cards[0]}, ???\nPlayer: ${playercards} (${player.cardTotal})`;
 				} else {
-					msg = `You have bet ${transfer} coin${pluralValues(transfer)}.\n\nDealer: ${dealer.cards[0]}, ???\nPlayer: ${playercards} (${player.cardTotal})`;
+					msg = `You have bet ${transfer} ${prefix(transfer)}.\n\nDealer: ${dealer.cards[0]}, ???\nPlayer: ${playercards} (${player.cardTotal})`;
 				}
 			}
 
@@ -429,7 +431,7 @@ module.exports = {
 		let row = await rowBuild();
 
 		// analytics
-		addCommandsUsed(interaction.user);
+		await addCommandsUsed(interaction.user);
 
 		// send reply
 		await interaction.editReply({
@@ -440,7 +442,7 @@ module.exports = {
 		try {
 			await followUpNotif(interaction);
 		} catch (error) {
-			console.error('[Blackjack] Notification failed:', error);
+			log.error('Notification failed:', error);
 		}
 
 		// balance refresh function

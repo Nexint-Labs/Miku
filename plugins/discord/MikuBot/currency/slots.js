@@ -13,16 +13,17 @@ const { short } = require('#functions/discord/container/menus/short');
 const { addCommandsUsed } = require('#functions/discord/analytics/usageData');
 const { abbrevBalance } = require('#functions/discord/helpers/abbrevValues');
 const delay = require('#functions/core/delay');
+const { prefix } = require('#functions/discord/core/pluralValues');
 
 module.exports = {
 	cooldown: 5,
 	data: new SlashCommandBuilder()
 		.setName('slots')
-		.setDescription('Pull a slot machine with coins (with REALLY terrible odds).')
+		.setDescription(`Pull a slot machine and gamble ${prefix(0)} (with REALLY terrible odds).`)
 		.addIntegerOption(option =>
 			option
-				.setName('coins')
-				.setDescription('The coin amount to gamble.'))
+				.setName(`${prefix(0, false, false)}`)
+				.setDescription(`The ${prefix(1)} amount to gamble.`))
 		.addIntegerOption(option =>
 			option
 				.setName('zeros')
@@ -30,7 +31,7 @@ module.exports = {
 		.addStringOption(option =>
 			option
 				.setName('all')
-				.setDescription('Gamble all coins?')
+				.setDescription(`Gamble all ${prefix(0)}?`)
 				.addChoices(
 					{ name: 'True', value: 'true' },
 				)),
@@ -66,9 +67,9 @@ module.exports = {
 		let addedCoins;
 
 		if (interaction.options.getInteger("zeros") === null) {
-			addedCoins = interaction.options.getInteger("coins");
+			addedCoins = interaction.options.getInteger(prefix(0, false, false));
 		} else {
-			addedCoins = interaction.options.getInteger("coins") * Math.pow(10, interaction.options.getInteger("zeros"));
+			addedCoins = interaction.options.getInteger(prefix(0, false, false)) * Math.pow(10, interaction.options.getInteger("zeros"));
 		}
 
 		if (interaction.options.getString("all") === "true") {
@@ -81,7 +82,7 @@ module.exports = {
 				await replyContainer(
 					interaction,
 					"API Error",
-					["Could not retrieve your balance."],
+					[`Could not retrieve your ${prefix(0)}.`],
 					"warn",
 					warning,
 					{
@@ -181,7 +182,7 @@ module.exports = {
 		// artificial delay to make it look interesting
 		await loadAnim(
 			interaction,
-			[`Rolling ${(abbrevBalance(Math.abs(addedCoins))).displayValue} coins\n\n[${emoji.typeEmoji}][${emoji.typeEmoji}][${emoji.typeEmoji}]`],
+			[`Rolling ${(abbrevBalance(Math.abs(addedCoins))).displayValue} ${prefix(Math.abs(addedCoins))}...\n\n[${emoji.typeEmoji}][${emoji.typeEmoji}][${emoji.typeEmoji}]`],
 			false
 		)
 		await delay(3000);
@@ -195,24 +196,24 @@ module.exports = {
 			// Prepare message
 			let msg = "";
 			if (shortened) {
-				msg = `You decided to gamble ${addedCoins.displayValue} coins and got:\n\n`
+				msg = `You decided to gamble ${addedCoins.displayValue} ${prefix(addedCoins.value)} and got:\n\n`
 				for (let i = 0; i < slotLength; i++) {
 					msg += `[${slotValues[slots[i]]}]`
 				}
 				if (reward) {
-					msg += `\n\nmaking ${multiplier}x your coins.\nYour updated balance: ${newCoinAmt.displayValue} coins.`
+					msg += `\n\nmaking ${multiplier}x your ${prefix(addedCoins.value)}.\nYour updated balance: ${newCoinAmt.displayValue} ${prefix(newCoinAmt.value)}.`
 				} else {
-					msg += `\n\nlosing all of your wagered coins.\nYour updated balance: ${newCoinAmt.displayValue} coins.`
+					msg += `\n\nlosing all of your wagered ${prefix(addedCoins.value)}.\nYour updated balance: ${newCoinAmt.displayValue} ${prefix(newCoinAmt.value)}.`
 				}
 			} else {
-				msg = `You decided to gamble ${addedCoins.value} coins and got:\n\n`
+				msg = `You decided to gamble ${addedCoins.value} ${prefix(addedCoins.value)} and got:\n\n`
 				for (let i = 0; i < slotLength; i++) {
 					msg += `[${slotValues[slots[i]]}]`
 				}
 				if (reward) {
-					msg += `\n\nmaking ${multiplier}x your coins.\nYour updated balance: ${newCoinAmt.value} coins.`
+					msg += `\n\nmaking ${multiplier}x your ${prefix(addedCoins.value)}.\nYour updated balance: ${newCoinAmt.value} ${prefix(newCoinAmt.value)}.`
 				} else {
-					msg += `\n\nlosing all of your wagered coins.\nYour updated balance: ${newCoinAmt.value} coins.`
+					msg += `\n\nlosing all of your wagered ${prefix(addedCoins.value)}.\nYour updated balance: ${newCoinAmt.value} ${prefix(newCoinAmt.value)}.`
 				}
 			}
 			if (level > 0) {

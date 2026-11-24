@@ -5,13 +5,14 @@ const { simpleMenu } = require('#functions/discord/container/menus/pageHandler')
 const { getAPI, queryAPI } = require('#functions/discord/api/fetch');
 const { replyContainer } = require('#functions/discord/container/replyContainer');
 const { warning } = require('#config/discord/visual/botAssets');
+const { prefix } = require('#functions/discord/core/pluralValues');
 
 module.exports = {
 	cooldown: 5,
 
 	data: new SlashCommandBuilder()
-		.setName('baltop')
-		.setDescription('Views balance of the top people, globally.')
+		.setName('top')
+		.setDescription(`Views the leaderboard of the top people on economy.`)
 		.addStringOption(option =>
 			option.setName('leaderboard')
 				.setDescription('The leaderboard to view.')
@@ -104,7 +105,7 @@ module.exports = {
 				}
 				const coins = abbrevBalance(value);
 
-				messages.push(`**#${i + 1}** · \`${user.name}\` - ${coins.displayValue} coins`);
+				messages.push(`**#${i + 1}** · \`${user.name}\` - ${coins.displayValue} ${prefix(coins.value)}`);
 			}
 
 			return messages;

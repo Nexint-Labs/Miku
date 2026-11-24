@@ -44,7 +44,7 @@ module.exports = {
 				userID = await convNameToID(interaction.options.getString("name"));
 			}
 			if (userID !== null) {
-				guildMember = await getUser(userID, interaction.client);
+				guildMember = await getUser(userID);
 			} else if (interaction.options.getString("name") === null) {
 				guildMember = interaction.user;
 			}

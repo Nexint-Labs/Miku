@@ -10,6 +10,7 @@ const { createAdvancedContainer } = require('#functions/discord/container/contai
 const { short } = require('#functions/discord/container/menus/short');
 const { abbrevBalance } = require('#functions/discord/helpers/abbrevValues');
 const { getUser } = require('#functions/discord/container/shardInfo');
+const { prefix } = require('#functions/discord/core/pluralValues');
 
 module.exports = {
 	cooldown: 5,
@@ -126,19 +127,19 @@ module.exports = {
 
 			// Balance (Bot)
 			if (shortened) {
-				msgBalance += `\nBalance: ${balanceUser2.displayValue} coins.`;
-				msgBalance += `\nBank Balance: ${bankBalanceUser.displayValue} / ${bankMax.displayValue} coins.`;
+				msgBalance += `\nBalance: ${balanceUser2.displayValue} ${prefix(balanceUser2.value)}.`;
+				msgBalance += `\nBank Balance: ${bankBalanceUser.displayValue} / ${bankMax.displayValue} ${prefix(bankMax.value)}.`;
 			} else {
-				msgBalance += `\nBalance: ${balanceUser2.value} coins.`;
-				msgBalance += `\nBank Balance: ${bankBalanceUser.value} / ${bankMax.value} coins.`;
+				msgBalance += `\nBalance: ${balanceUser2.value} ${prefix(balanceUser2.value)}.`;
+				msgBalance += `\nBank Balance: ${bankBalanceUser.value} / ${bankMax.value} ${prefix(bankMax.value)}.`;
 			}
 
 			// net worth code
 			const net = itemNetWorth ?? 0;
 			if (shortened) {
-				msgBalance += `\nNet Worth: ${(abbrevBalance(net + bankBalanceUser.value + balanceUser2.value)).displayValue} (${(abbrevBalance(net)).displayValue} from items)`
+				msgBalance += `\nNet Worth: ${(abbrevBalance(net + bankBalanceUser.value + balanceUser2.value)).displayValue} ${prefix(net + bankBalanceUser.value + balanceUser2.value)} (${(abbrevBalance(net)).displayValue} ${prefix(net)} from items)`
 			} else {
-				msgBalance += `\nNet Worth: ${(abbrevBalance(net + bankBalanceUser.value + balanceUser2.value)).value} (${(abbrevBalance(net)).value} from items)`
+				msgBalance += `\nNet Worth: ${(abbrevBalance(net + bankBalanceUser.value + balanceUser2.value)).value} ${prefix(net + bankBalanceUser.value + balanceUser2.value)} (${(abbrevBalance(net)).value} ${prefix(net)} from items)`
 			}
 
 			// Job
@@ -148,7 +149,7 @@ module.exports = {
 				} else {
 					msgJob += `\nJob: ${jobInfo.name} (Worked ${(abbrevBalance(workUser.workCount)).displayValue} times)`
 					msgJob += `\n-#  (Idea from ${jobInfo.credit})`
-					msgJob += `\nWage: ${(abbrevBalance(workUser.wage)).displayValue} (+-20%)`;
+					msgJob += `\nWage: ${(abbrevBalance(workUser.wage)).displayValue} ${prefix(workUser.wage)} (+-20%)`;
 				}
 			} else {
 				if (!workUser || workUser.jobId == -1 || !jobInfo) {
@@ -156,7 +157,7 @@ module.exports = {
 				} else {
 					msgJob += `\nJob: ${jobInfo.name} (Worked ${(abbrevBalance(workUser.workCount)).value} times)`
 					msgJob += `\n-#  (Idea from ${jobInfo.credit})`
-					msgJob += `\nWage: ${(abbrevBalance(workUser.wage)).value} (+-20%)`;
+					msgJob += `\nWage: ${(abbrevBalance(workUser.wage)).value} ${prefix(workUser.wage)} (+-20%)`;
 				}
 
 			}

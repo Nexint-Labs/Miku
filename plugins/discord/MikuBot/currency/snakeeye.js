@@ -13,6 +13,7 @@ const { createContainer } = require('#functions/discord/container/container');
 const { warning } = require('#config/discord/visual/botAssets');
 const { loadAnim } = require('#functions/discord/helpers/load');
 const delay = require('#functions/core/delay');
+const { prefix } = require('#functions/discord/core/pluralValues');
 
 module.exports = {
 	cooldown: 5,
@@ -21,8 +22,8 @@ module.exports = {
 		.setDescription('Snake eyes minigame - with TERRIBLE odds.')
 		.addIntegerOption(option =>
 			option
-				.setName('coins')
-				.setDescription('The coin amount.'))
+				.setName(`${prefix(0, false, false)}`)
+				.setDescription(`The ${prefix(1)} amount to gamble.`))
 		.addIntegerOption(option =>
 			option
 				.setName('zeros')
@@ -30,7 +31,7 @@ module.exports = {
 		.addStringOption(option =>
 			option
 				.setName('all')
-				.setDescription('Bet all coins?')
+				.setDescription(`Gamble all ${prefix(0)}?`)
 				.addChoices(
 					{ name: 'True', value: 'true' },
 				)),
@@ -61,46 +62,46 @@ module.exports = {
 		let guildMember = interaction.user;
 
 		// Calculate wager
-        let addedCoins;
+		let addedCoins;
 
-        if (interaction.options.getInteger("zeros") === null) {
-            addedCoins = interaction.options.getInteger("coins");
-        } else {
-            addedCoins = interaction.options.getInteger("coins") * Math.pow(10, interaction.options.getInteger("zeros"));
-        }
+		if (interaction.options.getInteger("zeros") === null) {
+			addedCoins = interaction.options.getInteger(prefix(0, false, false));
+		} else {
+			addedCoins = interaction.options.getInteger(prefix(0, false, false)) * Math.pow(10, interaction.options.getInteger("zeros"));
+		}
 
-        if (interaction.options.getString("all") === "true") {
-            const result = await queryAPI("/currency/update/balance", {
-                userId: guildMember.id,
-                name: getUsername(guildMember)
-            });
+		if (interaction.options.getString("all") === "true") {
+			const result = await queryAPI("/currency/update/balance", {
+				userId: guildMember.id,
+				name: getUsername(guildMember)
+			});
 
-            if (result.error) {
-                await replyContainer(
-                    interaction,
-                    "API Error",
-                    ["Could not retrieve your balance."],
-                    "warn",
-                    warning,
-                    {
-                        advert: false
-                    }
-                );
-                return;
-            }
+			if (result.error) {
+				await replyContainer(
+					interaction,
+					"API Error",
+					[`Could not retrieve your ${prefix(0)}.`],
+					"warn",
+					warning,
+					{
+						advert: false
+					}
+				);
+				return;
+			}
 
-            addedCoins = result.content.value;
-        }
+			addedCoins = result.content.value;
+		}
 
-        if (addedCoins === null || isNaN(addedCoins)) {
-            addedCoins = 0;
-        }
+		if (addedCoins === null || isNaN(addedCoins)) {
+			addedCoins = 0;
+		}
 
 		if (!Number.isFinite(addedCoins) || addedCoins <= 0) {
 			await replyContainer(
 				interaction,
 				"Snake eyes",
-				["You cannot gamble a non-positive amount of coins."],
+				[`You cannot gamble a non-positive amount of ${prefix(0)}.`],
 				"warn",
 				warning,
 				{
@@ -112,53 +113,53 @@ module.exports = {
 
 		const stake = addedCoins;
 
-        // Snake eyes logic
-        let rng = Math.floor(Math.random() * 6) + 1;
-        let rng2 = Math.floor(Math.random() * 6) + 1;
+		// Snake eyes logic
+		let rng = Math.floor(Math.random() * 6) + 1;
+		let rng2 = Math.floor(Math.random() * 6) + 1;
 
-        if (rng < 2 && rng2 < 2) {
-            addedCoins *= 24;
-        } else if (rng != rng2) {
-            addedCoins *= -1;
-        }
+		if (rng < 2 && rng2 < 2) {
+			addedCoins *= 24;
+		} else if (rng != rng2) {
+			addedCoins *= -1;
+		}
 
-        // Settle wager through NexAPI
-        const result = await postAPI("/currency/update/balance", {
-            userId: guildMember.id,
-            name: getUsername(guildMember),
-            amount: addedCoins,
-            required: stake
-        });
+		// Settle wager through NexAPI
+		const result = await postAPI("/currency/update/balance", {
+			userId: guildMember.id,
+			name: getUsername(guildMember),
+			amount: addedCoins,
+			required: stake
+		});
 
-        if (result.error) {
-            if (result.status == 402) {
-                await replyContainer(
-                    interaction,
-                    "Snake eyes",
-                    ["You have insufficient funds to perform this action."],
-                    "warn",
-                    warning,
-                    {
-                        advert: false
-                    }
-                );
-                return;
-            }
+		if (result.error) {
+			if (result.status == 402) {
+				await replyContainer(
+					interaction,
+					"Snake eyes",
+					[`You have insufficient ${prefix(0)} to perform this action.`],
+					"warn",
+					warning,
+					{
+						advert: false
+					}
+				);
+				return;
+			}
 
-            await replyContainer(
-                interaction,
-                "API Error",
-                ["Could not play snake eyes."],
-                "warn",
-                warning,
-                {
-                    advert: false
-                }
-            );
-            return;
-        }
+			await replyContainer(
+				interaction,
+				"API Error",
+				["Could not play snake eyes."],
+				"warn",
+				warning,
+				{
+					advert: false
+				}
+			);
+			return;
+		}
 
-        let balanceUser = result.content;
+		let balanceUser = result.content;
 
 		// artificial delay to make it look interesting
 		await loadAnim(
@@ -168,9 +169,9 @@ module.exports = {
 		)
 
 		await delay(3000);
-        addedCoins = abbrevBalance(addedCoins);
-        let newCoinAmt = abbrevBalance(balanceUser.value);
-        let level = await expGain(guildMember);
+		addedCoins = abbrevBalance(addedCoins);
+		let newCoinAmt = abbrevBalance(balanceUser.value);
+		let level = await expGain(guildMember);
 
 		// build message
 		const containerBuild = async function (shortened) {
@@ -178,14 +179,14 @@ module.exports = {
 			// Prepare message
 			let msg = "";
 			if (shortened) {
-				msg = `You rolled [${rng}] [${rng2}], and made back ${addedCoins.displayValue} coins.\nYour updated balance: ${newCoinAmt.displayValue} coins.`
+				msg = `You rolled [${rng}] [${rng2}], and made back ${addedCoins.displayValue} ${prefix(addedCoins.value)}.\nYour updated balance: ${newCoinAmt.displayValue} ${prefix(newCoinAmt.value)}.`
 				if (addedCoins.value < 0) {
-					msg = `You rolled [${rng}] [${rng2}], and lost ${(abbrevBalance(addedCoins.value * -1)).displayValue} coins.\nYour updated balance: ${newCoinAmt.displayValue} coins.`
+					msg = `You rolled [${rng}] [${rng2}], and lost ${(abbrevBalance(addedCoins.value * -1)).displayValue} ${prefix(addedCoins.value)}.\nYour updated balance: ${newCoinAmt.displayValue} ${prefix(newCoinAmt.value)}.`
 				}
 			} else {
-				msg = `You rolled [${rng}] [${rng2}], and made back ${addedCoins.value} coins.\nYour updated balance: ${newCoinAmt.value} coins.`
+				msg = `You rolled [${rng}] [${rng2}], and made back ${addedCoins.value} ${prefix(addedCoins.value)}.\nYour updated balance: ${newCoinAmt.value} ${prefix(newCoinAmt.value)}.`
 				if (addedCoins.value < 0) {
-					msg = `You rolled [${rng}] [${rng2}], and lost ${Math.abs(addedCoins.value)} coins.\nYour updated balance: ${newCoinAmt.value} coins.`
+					msg = `You rolled [${rng}] [${rng2}], and lost ${Math.abs(addedCoins.value)} ${prefix(addedCoins.value)}.\nYour updated balance: ${newCoinAmt.value} ${prefix(newCoinAmt.value)}.`
 				}
 			}
 			if (level > 0) {
